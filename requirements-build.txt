@@ -1,3 +1,13 @@
 -r requirements.txt
+# Intel macOS has no official Numba/llvmlite wheels after the 0.62 series.
+# Keep the compatible numerical stack identical across all four builders.
+numba==0.62.1
+llvmlite==0.45.1
+numpy==1.26.4
+opencv-contrib-python==4.11.0.86
+# rembg 2.0.69 declares the headless distribution; keep its cv2 ABI aligned.
+opencv-python-headless==4.11.0.86
+mediapipe==0.10.21
+rembg==2.0.69
 PyInstaller>=6.16,<7
 pyinstaller-hooks-contrib>=2025.9

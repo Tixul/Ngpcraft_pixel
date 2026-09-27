@@ -9,14 +9,20 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 os.chdir(ROOT)
-target = os.environ.get('BUILD_TARGET', f'{sys.platform}-{platform.machine()}')
+target = os.environ.get('BUILD_TARGET', f'{sys.platform}-{platform.machine()}'.lower())
 if not target or any(c not in 'abcdefghijklmnopqrstuvwxyz0123456789-_' for c in target):
     raise ValueError('Invalid BUILD_TARGET')
+# Catch dependency import failures before spending time on PyInstaller.
+env = dict(os.environ, QT_QPA_PLATFORM='offscreen')
+subprocess.run([sys.executable, 'packaging/entry.py', '--smoke-test'], check=True, timeout=120, env=env)
 command = [
     sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean',
     '--onedir', '--windowed', '--name', 'NgpCraftPixel', '--paths', str(ROOT),
     '--exclude-module', 'PyQt5', '--exclude-module', 'PyQt6',
     '--exclude-module', 'PySide2',
+    # pymatting reads its distribution version at import time. Without the
+    # metadata rembg raises PackageNotFoundError (an ImportError subclass).
+    '--copy-metadata', 'pymatting',
 ]
 for package in ('mediapipe', 'rembg', 'onnxruntime'):
     command.extend(['--collect-all', package])
@@ -28,8 +34,14 @@ if sys.platform == 'darwin':
     executable = bundle / 'Contents' / 'MacOS' / 'NgpCraftPixel'
 else:
     executable = bundle / ('NgpCraftPixel.exe' if sys.platform == 'win32' else 'NgpCraftPixel')
-env = dict(os.environ, QT_QPA_PLATFORM='offscreen')
-subprocess.run([str(executable), '--smoke-test'], check=True, timeout=120, env=env)
+report = ROOT / 'build' / 'smoke-test-error.txt'
+report.unlink(missing_ok=True)
+env['NGPCRAFT_SMOKE_REPORT'] = str(report)
+try:
+    subprocess.run([str(executable), '--smoke-test'], check=True, timeout=120, env=env)
+finally:
+    if report.exists():
+        print(report.read_text(encoding='utf-8'), flush=True)
 release = ROOT / 'release'
 release.mkdir(exist_ok=True)
 archive_base = release / f'NgpCraftPixel-{target}'

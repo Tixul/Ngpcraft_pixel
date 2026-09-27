@@ -298,3 +298,21 @@ python packaging/build.py
 
 Builds use PyInstaller's native platform packaging:
 [PyInstaller documentation](https://www.pyinstaller.org/en/stable/usage.html).
+
+
+### Build dependency policy and troubleshooting
+
+`requirements-build.txt` pins the numerical/ML packages to a compatible Python
+3.11 stack shared by the four platforms. Numba 0.62.1 and llvmlite 0.45.1 have
+Intel macOS wheels; newer Numba releases no longer provide official Intel macOS
+support. CI requires binary wheels so it never attempts an LLVM source build.
+See the [Numba support policy](https://numba.readthedocs.io/en/stable/user/installing.html).
+
+The standalone bundle explicitly includes `pymatting` distribution metadata,
+which its import-time version lookup requires. Both source and frozen smoke tests
+check ML imports without downloading weights. Failed builds save their traceback
+and PyInstaller warnings as `diagnostics-*` artifacts, separate from release assets.
+
+After changing the workflow or build scripts, push the new commit and run the
+workflow on that branch, or push a new version tag. Re-running an old tag uses
+its original commit and will not pick up fixes from a newer branch commit.
