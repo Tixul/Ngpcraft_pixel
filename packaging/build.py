@@ -13,8 +13,28 @@ target = os.environ.get('BUILD_TARGET', f'{sys.platform}-{platform.machine()}'.l
 if not target or any(c not in 'abcdefghijklmnopqrstuvwxyz0123456789-_' for c in target):
     raise ValueError('Invalid BUILD_TARGET')
 # Catch dependency import failures before spending time on PyInstaller.
-env = dict(os.environ, QT_QPA_PLATFORM='offscreen')
-subprocess.run([sys.executable, 'packaging/entry.py', '--smoke-test'], check=True, timeout=120, env=env)
+env = dict(os.environ, QT_QPA_PLATFORM='offscreen', PYTHONUNBUFFERED='1')
+report = ROOT / 'build' / 'smoke-test-error.txt'
+report.parent.mkdir(parents=True, exist_ok=True)
+env['NGPCRAFT_SMOKE_REPORT'] = str(report)
+
+
+def smoke_test(command, label):
+    # Fresh hosted runners may spend several minutes initializing ML libraries.
+    # Keep a finite limit and retain stack traces if initialization gets stuck.
+    report.unlink(missing_ok=True)
+    print(f'Starting {label} smoke test (timeout: 600 seconds)', flush=True)
+    try:
+        subprocess.run(command, check=True, timeout=600, env=env)
+    except subprocess.TimeoutExpired:
+        print(f'{label} smoke test exceeded 600 seconds; diagnostics follow.', flush=True)
+        raise
+    finally:
+        if report.exists():
+            print(report.read_text(encoding='utf-8'), flush=True)
+
+
+smoke_test([sys.executable, 'packaging/entry.py', '--smoke-test'], 'source')
 command = [
     sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean',
     '--onedir', '--windowed', '--name', 'NgpCraftPixel', '--paths', str(ROOT),
@@ -34,14 +54,7 @@ if sys.platform == 'darwin':
     executable = bundle / 'Contents' / 'MacOS' / 'NgpCraftPixel'
 else:
     executable = bundle / ('NgpCraftPixel.exe' if sys.platform == 'win32' else 'NgpCraftPixel')
-report = ROOT / 'build' / 'smoke-test-error.txt'
-report.unlink(missing_ok=True)
-env['NGPCRAFT_SMOKE_REPORT'] = str(report)
-try:
-    subprocess.run([str(executable), '--smoke-test'], check=True, timeout=120, env=env)
-finally:
-    if report.exists():
-        print(report.read_text(encoding='utf-8'), flush=True)
+smoke_test([str(executable), '--smoke-test'], 'frozen application')
 release = ROOT / 'release'
 release.mkdir(exist_ok=True)
 archive_base = release / f'NgpCraftPixel-{target}'
