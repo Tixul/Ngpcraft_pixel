@@ -254,19 +254,21 @@ and other personal information before posting its output in a public issue.
 ## Automated desktop releases (GitHub Actions)
 
 Push this repository, including `.github/workflows/release.yml`, to GitHub.
-Every pushed tag beginning with `v` builds the application on four native runners:
+Every pushed tag beginning with `v` builds the application on two native runners (Windows and Linux):
 
 | Download | Platform | Launch after extracting the entire archive |
 | --- | --- | --- |
 | `NgpCraftPixel-windows-x64.zip` | Windows x64 | `NgpCraftPixel/NgpCraftPixel.exe` |
 | `NgpCraftPixel-linux-x64.tar.gz` | Linux x64 (Ubuntu 22.04 or compatible newer distribution) | `NgpCraftPixel/NgpCraftPixel` |
-| `NgpCraftPixel-macos-x64.zip` | macOS Intel | `NgpCraftPixel.app` |
-| `NgpCraftPixel-macos-arm64.zip` | macOS Apple Silicon | `NgpCraftPixel.app` |
 
 Python is bundled; users do not need to install it. Keep the whole extracted
 folder together. Linux still requires system graphics libraries and a desktop
-session. macOS builds target macOS 15 or newer. Binaries have no publisher signing
-certificate or Apple notarization, so OS security checks may require approval.
+session. Windows binaries have no publisher signing certificate, so OS security
+checks may require approval.
+
+Automated macOS builds are disabled: the packaged application passed its smoke
+test but hung during shutdown on the runner. macOS does not block Windows/Linux
+releases, and no macOS archive is produced by this workflow.
 
 To publish a version after committing and pushing the changes:
 
@@ -275,7 +277,7 @@ git tag -a v1.0.0 -m "NgpCraft Pixel 1.0.0"
 git push origin v1.0.0
 ```
 
-All four builds must pass their frozen-application smoke tests before the workflow
+Both builds must pass their frozen-application smoke tests before the workflow
 creates the GitHub release and uploads the archives and SHA-256 checksum files.
 Tags containing a hyphen, such as `v1.1.0-beta.1`, create prereleases.
 Re-running a tag build replaces its assets. Use a new tag for a new version.
@@ -304,9 +306,9 @@ Builds use PyInstaller's native platform packaging:
 ### Build dependency policy and troubleshooting
 
 `requirements-build.txt` pins the numerical/ML packages to a compatible Python
-3.11 stack shared by the four platforms. Numba 0.62.1 and llvmlite 0.45.1 have
-Intel macOS wheels; newer Numba releases no longer provide official Intel macOS
-support. CI requires binary wheels so it never attempts an LLVM source build.
+3.11 stack for the enabled Windows/Linux builds. These pins are retained from
+the earlier cross-platform setup. CI requires binary wheels so it never attempts
+an LLVM source build.
 See the [Numba support policy](https://numba.readthedocs.io/en/stable/user/installing.html).
 
 The standalone bundle explicitly includes `pymatting` distribution metadata,
