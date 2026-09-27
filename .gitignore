@@ -1,0 +1,54 @@
+# Python environments and generated files
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Local images, exports and model caches
+image test/
+private/
+exports/
+output/
+outputs/
+.cache/
+.u2net/
+*.onnx
+*.pth
+*.pt
+*.ngpp.json
+# No bundled image assets are required by this application
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.avif
+*.bmp
+*.gif
+*.tif
+*.tiff
+
+# Credentials, local settings and diagnostic logs
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Desktop packaging outputs
+release/
+*.spec

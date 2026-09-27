@@ -1,0 +1,25 @@
+# Core — always required
+PySide6>=6.5
+Pillow>=10.0
+numpy>=1.24
+
+# Detourage / morphology / bilateral filter
+# NOTE : on utilise opencv-contrib-python (superset de opencv-python) pour éviter
+# un conflit avec mediapipe qui dépend aussi de opencv-contrib-python. Les deux
+# packages fournissent cv2.pyd et ne peuvent PAS coexister.
+# Si tu as opencv-python installé, fais d'abord :
+#   pip uninstall -y opencv-python
+# (app fermée, sinon cv2.pyd est verrouillé → WinError 5)
+opencv-contrib-python>=4.8
+
+# === Optional ML (all opt-in, graceful fallback if absent) ===
+# MediaPipe : face detection + face mesh (iris landmarks) — ~60 MB install, 4 MB models
+# Unlocks : Auto-crop sur visage, Préserver les yeux (eye preservation post-quantize)
+# License : Apache 2.0
+mediapipe>=0.10.0
+
+# rembg : matting neural SOTA — remplace GrabCut pour cheveux fins, vêtements translucides
+# ~170 MB au premier usage (téléchargement du modèle BRIA-RMBG-1.4 / U2Net Apache 2.0)
+# License : MIT (code) + Apache 2.0 (modèle)
+rembg>=2.0
+onnxruntime>=1.17
