@@ -1,3 +1,4 @@
+<img width="1826" height="1138" alt="Capture d&#39;écran 2026-09-27 203024" src="https://github.com/user-attachments/assets/d9ef601b-06a5-4b50-bb76-5972eb621e4b" />
 # NgpCraft Pixel
 
 **Convert photos and images into Neo Geo Pocket Color-ready sprites and backgrounds.**
